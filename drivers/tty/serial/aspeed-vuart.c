@@ -71,6 +71,44 @@ static ssize_t ast_vuart_set_enabled(struct device *dev,
 static DEVICE_ATTR(enabled, S_IWUSR | S_IRUGO,
 		ast_vuart_show_enabled, ast_vuart_set_enabled);
 
+
+static ssize_t ast_vuart_show_discard_mode(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct ast_vuart *vuart = dev_get_drvdata(dev);
+	u8 reg;
+
+	reg = readb(vuart->regs + AST_VUART_GCRA) & AST_VUART_GCRA_HOST_TX_DISCARD;
+
+	return snprintf(buf, PAGE_SIZE - 1, "%u\n", reg ? 1 : 0);
+}
+
+static ssize_t ast_vuart_set_discard_mode(struct device *dev,
+		struct device_attribute *attr,
+		const char *buf, size_t count)
+{
+	struct ast_vuart *vuart = dev_get_drvdata(dev);
+	unsigned long val;
+	int err;
+	u8 reg;
+
+	err = kstrtoul(buf, 0, &val);
+	if (err)
+		return err;
+
+	reg = readb(vuart->regs + AST_VUART_GCRA);
+	reg &= ~AST_VUART_GCRA_HOST_TX_DISCARD;
+	if (val)
+		reg |= AST_VUART_GCRA_HOST_TX_DISCARD;
+	writeb(reg, vuart->regs + AST_VUART_GCRA);
+
+	return count;
+}
+
+static DEVICE_ATTR(discard_mode, S_IWUSR | S_IRUGO,
+		ast_vuart_show_discard_mode, ast_vuart_set_discard_mode);
+
+
 static ssize_t ast_vuart_show_addr(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -285,6 +323,10 @@ static int ast_vuart_probe(struct platform_device *pdev)
 	rc = device_create_file(&pdev->dev, &dev_attr_enabled);
 	if (rc)
 		dev_warn(&pdev->dev, "can't create enabled file\n");
+	rc = device_create_file(&pdev->dev, &dev_attr_discard_mode);
+	if (rc)
+		dev_warn(&pdev->dev, "can't create discard_mode file\n");
+
 
 	return 0;
 
