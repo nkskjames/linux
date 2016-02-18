@@ -37,7 +37,7 @@ MODULE_DEVICE_TABLE(of, aspeed_wdt_of_table);
 #define WDT_RELOAD_VALUE	0x04
 #define WDT_RESTART		0x08
 #define WDT_CTRL		0x0C
-#define   WDT_CTRL_RESET_MODE_FULL_CHIP	(0x01 << 5)
+#define   WDT_CTRL_RESET_MODE_FULL_CHIP	(0x10 << 5)
 #define   WDT_CTRL_RESET_SYSTEM		(0x1  << 1)
 #define   WDT_CTRL_ENABLE		(0x1  << 0)
 
